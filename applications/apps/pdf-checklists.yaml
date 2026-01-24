@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/desponda/pdf-checklists
     targetRevision: main
-    path: helm
+    path: helm/pdf-checklists
     helm:
       values: |
         ingress:
