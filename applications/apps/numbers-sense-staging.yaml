@@ -27,8 +27,6 @@ spec:
           value: staging
         - name: ingress.hosts[0].host
           value: numbers-sense-staging.dresponda.com
-        - name: ingress.tls[0].hosts[0]
-          value: numbers-sense-staging.dresponda.com
   destination:
     server: https://kubernetes.default.svc
     namespace: numbers-sense-staging
