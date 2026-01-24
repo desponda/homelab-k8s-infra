@@ -1,0 +1,37 @@
+# PostgreSQL Shared Database Application
+# Provides shared PostgreSQL database for applications
+#
+# OPTIONAL: Create postgresql secret before syncing to set specific password
+# See: secrets-templates/postgresql-secret.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: postgresql
+    targetRevision: 15.2.0
+    helm:
+      values: |
+        primary:
+          persistence:
+            size: 8Gi
+        auth:
+          existingSecret: postgresql
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: postgresql
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

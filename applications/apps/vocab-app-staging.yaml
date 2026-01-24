@@ -1,0 +1,46 @@
+# Vocab App Staging Application
+# Vocabulary learning application (staging environment)
+#
+# PREREQUISITE: Create vocab-app secrets before syncing
+# - ghcr-credentials (for pulling images)
+# - vocab-app-anthropic-secret (for AI features)
+# Other secrets are auto-generated via PreSync hooks
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vocab-app-staging
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/desponda/vocab-app.git
+    targetRevision: main
+    path: k8s/helm/vocab-app
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: global.environment
+          value: staging
+        - name: global.domain
+          value: vocab-staging.dresponda.com
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vocab-app-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground

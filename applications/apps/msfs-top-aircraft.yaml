@@ -1,0 +1,39 @@
+# MSFS Top Aircraft Application
+# Flight simulator aircraft popularity tracker
+#
+# PREREQUISITE: Create msfs-secrets before syncing
+# See: secrets-templates/msfs-secrets.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: msfs-top-aircraft
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/desponda/msfs-top-aircraft
+    targetRevision: main
+    path: helm
+    helm:
+      valueFiles:
+        - values.yaml
+      values: |
+        frontend:
+          ingress:
+            enabled: true
+            host: msfstop.dresponda.com
+            ingressClassName: cloudflare-tunnel
+        secret:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: msfs-top-charts
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,27 @@
+# Secrets - NEVER commit actual secrets
+*-secret.yaml.actual
+secrets-backup*.yaml
+*.gpg
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# Helm
+*.tgz
+charts/
+
+# Kubeconfig
+kubeconfig
+.kube/

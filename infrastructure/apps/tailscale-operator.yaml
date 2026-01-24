@@ -1,0 +1,37 @@
+# Tailscale Operator Application
+# Provides private VPN access to cluster services
+#
+# PREREQUISITE: Create the operator-oauth secret before syncing
+# See: secrets-templates/tailscale-secret.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://pkgs.tailscale.com/helmcharts
+    chart: tailscale-operator
+    targetRevision: 1.82.5
+    helm:
+      values: |
+        oauth:
+          clientId: ""
+          clientSecret: ""
+        operatorConfig:
+          hostname: golden-k3s-operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tailscale
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

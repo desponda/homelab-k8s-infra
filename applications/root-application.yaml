@@ -1,0 +1,25 @@
+# Root Application for User Applications
+# This manages all user-facing applications
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-applications
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/desponda/homelab-k8s-infra.git
+    targetRevision: main
+    path: applications/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

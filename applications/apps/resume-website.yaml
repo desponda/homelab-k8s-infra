@@ -1,0 +1,41 @@
+# Resume Website Application
+# Personal portfolio/resume website
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: resume-website
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/desponda/resume-website.git
+    targetRevision: main
+    path: k8s/helm/resume-website
+    helm:
+      valueFiles:
+        - values.yaml
+      parameters:
+        - name: global.environment
+          value: production
+        - name: global.domain
+          value: dresponda.com
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
