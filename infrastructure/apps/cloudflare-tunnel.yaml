@@ -22,18 +22,11 @@ spec:
     helm:
       values: |
         cloudflare:
-          apiToken:
-            existingSecret:
-              name: cloudflare-api
-              key: api-token
-          accountId:
-            existingSecret:
-              name: cloudflare-api
-              key: cloudflare-account-id
-          tunnelName:
-            existingSecret:
-              name: cloudflare-api
-              key: cloudflare-tunnel-name
+          secretRef:
+            name: cloudflare-api
+            accountIDKey: cloudflare-account-id
+            tunnelNameKey: cloudflare-tunnel-name
+            apiTokenKey: api-token
   destination:
     server: https://kubernetes.default.svc
     namespace: cloudflare-tunnel

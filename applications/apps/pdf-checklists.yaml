@@ -1,0 +1,36 @@
+# PDF Checklists Application
+# Aviation PDF checklist viewer
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pdf-checklists
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/desponda/pdf-checklists
+    targetRevision: main
+    path: helm
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          className: cloudflare-tunnel
+          host: checklists.dresponda.com
+          path: /
+          pathType: Prefix
+          tls: false
+          annotations:
+            tunnel.ingress.k8s.cloudflare.com/enable-default-route: "true"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: checklists
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
