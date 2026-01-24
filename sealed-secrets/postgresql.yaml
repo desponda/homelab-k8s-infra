@@ -1,0 +1,24 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: postgresql
+  namespace: postgresql
+spec:
+  encryptedData:
+    postgres-password: AgAY7zf8FX0mYz0fQ/voxSxXoDH5sUP+oltWZCTbzxRrNtdC+hat+gVx7Wy6r9ViQp1AD6xEo5XsRn+I7ISsHrEzW7qeUxtZxVQGy3nizkOugudvhTrsrbCEmGwk446tDZopgMHD2tL7h4hK9xoeOG3cfp8wGe81DM9mxRk7CHV4seGOvFo2n4JhMraDXS4U2+MAJlfJU42meuMPQ84IZCD4JU+wB+fcGCdTi8gD5x++Or8aSuZiJ9Cn3mqrzDFa7ozCliqPKlz8k8fXBsQrvNRll4GuMzbCgUAUxF+nh8fFIt5OlYjt6uxSiXano0YE0VqLhkhCS/lO2XyOhu2HE5rf0U1kCqigseBDyTGp9OXSDpgp+XiVqakAf/FMkP98UlRu3ZP5Fs/Z3e5cyJ8c2RZLy4uOCkV15SQ23iJIpUOLOiU66HK0HC1hTugPuveGRYdC3KKhHolTAiC84iwnJaS40HA2suApPaWdfnlRa1NJJG4iB0vPzSt1/V3P29AxbNTmttZyW8nLeWyqvtKNnZG5D2JMLDZW6DQghe6N2qk7NmBblaY4jVOwq1BZQSFP+mn2HFDpR/kPFGf2uxudM7OcxCQa/fPM7uoghcQw1zo61NzhfbC4fTe+N3uh1+atJrJIV5mWYXu6Qq9SvMEb8LU3uAj+w0xgvO2yevHPmWr2hhjMctoL9pDevMsC2KOIYdzDFJ+1PCox6Ovh
+  template:
+    metadata:
+      annotations:
+        argocd.argoproj.io/tracking-id: postgresql:/Secret:postgresql/postgresql
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: postgresql
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/version: 16.2.0
+        helm.sh/chart: postgresql-15.2.0
+      name: postgresql
+      namespace: postgresql
+    type: Opaque

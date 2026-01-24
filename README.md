@@ -9,6 +9,12 @@ GitOps repository for disaster recovery and management of the homelab k3s cluste
 │                        k3s Cluster                               │
 │                    (golden-minas-tirith)                         │
 ├─────────────────────────────────────────────────────────────────┤
+│  Secrets Layer                                                   │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │              Sealed Secrets Controller                    │   │
+│  │   (Decrypts SealedSecrets from Git into K8s Secrets)     │   │
+│  └──────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
 │  Infrastructure Layer (managed by root-infrastructure app)       │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────────────────┐ │
 │  │ cert-manager │ │   Tailscale  │ │  Cloudflare Tunnel       │ │
@@ -27,17 +33,36 @@ GitOps repository for disaster recovery and management of the homelab k3s cluste
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## Secrets Management
+
+This repo uses **Sealed Secrets** for secure GitOps secrets management:
+
+- Secrets are encrypted with the cluster's public key
+- Encrypted secrets (SealedSecrets) are stored in `sealed-secrets/`
+- Only the cluster can decrypt them
+- Safe to commit to Git
+
+**CRITICAL**: The sealing key must be backed up for disaster recovery!
+```bash
+./bootstrap/backup-sealing-key.sh
+# Encrypt and store the output securely (password manager, etc.)
+```
+
 ## Directory Structure
 
 ```
 homelab-k8s-infra/
-├── bootstrap/              # Installation scripts
+├── bootstrap/              # Installation & recovery scripts
 │   ├── install-k3s.sh     # k3s installation
 │   ├── install-argocd.sh  # ArgoCD installation
-│   └── restore-secrets.sh # Secret restoration helper
+│   ├── seal-secret.sh     # Seal a new secret
+│   ├── backup-sealing-key.sh   # Backup the sealing key (CRITICAL!)
+│   └── restore-sealing-key.sh  # Restore sealing key after DR
 ├── infrastructure/         # Infrastructure ArgoCD apps
 │   ├── root-application.yaml  # App of Apps for infra
-│   └── apps/              # Individual infra apps
+│   └── apps/
+│       ├── sealed-secrets.yaml        # Sealed Secrets controller
+│       ├── sealed-secrets-resources.yaml  # Deploy sealed secrets
 │       ├── cert-manager.yaml
 │       ├── cloudflare-tunnel.yaml
 │       ├── datadog-operator.yaml
@@ -46,21 +71,22 @@ homelab-k8s-infra/
 │       ├── postgresql.yaml
 │       └── tailscale-operator.yaml
 ├── applications/          # User applications ArgoCD apps
-│   ├── root-application.yaml  # App of Apps for user apps
+│   ├── root-application.yaml
 │   └── apps/
 │       ├── msfs-top-aircraft.yaml
 │       ├── resume-website.yaml
 │       └── vocab-app-staging.yaml
+├── sealed-secrets/        # Encrypted secrets (SAFE for Git!)
+│   ├── cloudflare-api.yaml
+│   ├── datadog-secret.yaml
+│   ├── postgresql.yaml
+│   ├── msfs-secrets.yaml
+│   ├── tailscale-operator-oauth.yaml
+│   ├── vocab-app-ghcr-credentials.yaml
+│   └── vocab-app-anthropic-secret.yaml
 ├── manifests/             # Raw Kubernetes manifests
 │   └── datadog-agent.yaml
-├── secrets-templates/     # Secret templates (NO ACTUAL SECRETS)
-│   ├── README.md
-│   ├── cloudflare-tunnel-secret.yaml
-│   ├── datadog-secret.yaml
-│   ├── ghcr-credentials.yaml
-│   ├── msfs-secrets.yaml
-│   ├── postgresql-secret.yaml
-│   └── tailscale-secret.yaml
+├── secrets-templates/     # Reference templates (for manual creation)
 └── docs/
     └── DISASTER_RECOVERY.md
 ```
@@ -71,11 +97,12 @@ homelab-k8s-infra/
 - Fresh Ubuntu 24.04 server
 - SSH access
 - GitHub CLI (`gh`) authenticated
-- Your encrypted secrets backup
+- **Your encrypted sealing key backup** (sealed-secrets-key-backup.yaml.gpg)
 
 ### Step 1: Install k3s
 ```bash
-cd bootstrap
+git clone https://github.com/desponda/homelab-k8s-infra.git
+cd homelab-k8s-infra/bootstrap
 chmod +x *.sh
 ./install-k3s.sh
 ```
@@ -85,25 +112,25 @@ chmod +x *.sh
 ./install-argocd.sh
 ```
 
-### Step 3: Restore Secrets
+### Step 3: Restore Sealing Key (CRITICAL!)
 ```bash
-# From encrypted backup
-gpg -d /path/to/secrets-backup.yaml.gpg > secrets-backup.yaml
-./restore-secrets.sh secrets-backup.yaml
-rm secrets-backup.yaml
+# Decrypt your sealing key backup
+gpg -d /secure/location/sealed-secrets-key-backup.yaml.gpg > sealed-secrets-key-backup.yaml
 
-# Or create secrets manually from templates
-kubectl apply -f ../secrets-templates/cloudflare-tunnel-secret.yaml
-# ... (see secrets-templates/README.md for order)
+# Restore it to the cluster
+./restore-sealing-key.sh sealed-secrets-key-backup.yaml
+
+# Securely delete the decrypted file
+shred -u sealed-secrets-key-backup.yaml
 ```
 
 ### Step 4: Apply Root Applications
 ```bash
-# Deploy infrastructure
+# Deploy infrastructure (includes sealed-secrets controller and all secrets)
 kubectl apply -f ../infrastructure/root-application.yaml
 
-# Wait for infrastructure to be ready
-kubectl -n argocd wait --for=condition=healthy application/cert-manager --timeout=300s
+# Wait for sealed-secrets and secrets to be ready
+kubectl -n argocd wait --for=condition=healthy application/sealed-secrets --timeout=300s
 
 # Deploy applications
 kubectl apply -f ../applications/root-application.yaml
@@ -114,24 +141,50 @@ kubectl apply -f ../applications/root-application.yaml
 # Check ArgoCD applications
 kubectl get applications -n argocd
 
+# Verify secrets were decrypted
+kubectl get secrets -A | grep -v 'default-token\|service-account'
+
 # Check all pods
 kubectl get pods -A
 ```
 
 ## Backup Procedures
 
-### Secrets Backup (DO REGULARLY)
+### Sealing Key Backup (DO THIS ONCE, STORE SECURELY)
 ```bash
-# Export secrets
-kubectl get secrets --all-namespaces \
-  -l '!kubernetes.io/service-account-token' \
-  -o yaml > secrets-backup.yaml
+# Backup the sealing key - CRITICAL for disaster recovery!
+./bootstrap/backup-sealing-key.sh
 
-# Encrypt
-gpg -c secrets-backup.yaml
+# Encrypt it
+gpg -c sealed-secrets-key-backup.yaml
 
-# Store secrets-backup.yaml.gpg securely (NOT in git!)
-rm secrets-backup.yaml
+# Store sealed-secrets-key-backup.yaml.gpg in:
+# - Password manager (1Password, Bitwarden, etc.)
+# - Encrypted cloud storage
+# - Offline backup
+
+# Delete unencrypted version
+shred -u sealed-secrets-key-backup.yaml
+```
+
+### Adding/Updating Secrets
+With Sealed Secrets, you no longer need to backup secrets separately.
+Just seal them and commit to Git:
+```bash
+# Create a new secret
+kubectl create secret generic my-secret \
+  --namespace my-ns \
+  --from-literal=key=value \
+  --dry-run=client -o yaml > /tmp/secret.yaml
+
+# Seal it
+./bootstrap/seal-secret.sh /tmp/secret.yaml sealed-secrets/my-secret.yaml
+
+# Clean up and commit
+rm /tmp/secret.yaml
+git add sealed-secrets/my-secret.yaml
+git commit -m "Add sealed secret"
+git push
 ```
 
 ### Database Backup

@@ -1,0 +1,22 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: operator-oauth
+  namespace: tailscale
+spec:
+  encryptedData:
+    client_id: AgAmLbvnLdvG45OeUy/Psbmyqq8Uy7sBlEbZx421IAiRIlskOENth92+Qip0hFKT6i6DGalar326gMiF3I5R35mg/FEeIs0xLXUd7Z7rSnJTGka9r3+nhgZQCuZ85MpWjhl/s9Uxh2tfUsY+L5aSIisH6wALSoVNj+n5R52p1Q0UWIFB/hYiALGOMMbU86N6UvZaYP+9HzrCbQQA9L+Xd7TuKNkI+lq7DzJc+q2wS0PpwpCu8h680tioG+5cvlFB+SvwJjk/m09093XRYLZzjSEhkbTKDuyuHRmWJOcecM+iJ4IWDuYycGdrUZ1CG6wZuJMjWlU9/3ou90Mqy6T10yK1rmy8AQL2hboHABs+B6m1Cv0v9A4wrSIsNtoubXIMw8Ldrf2ZzZHaSIe88Pwng/6G7lAOe9mOhzezOUna4ICi6l//Hh/Pp9evdY2KUsjxdYOcwUM7icKsi6lWW0swj3Kl136QSsfQ3jq+cKrBHn6bqjkY0ikPo2BRQ+BPon2/AY4KqKHJXBC1h/W6EWZLXyrDPcQKWDf2z6WFfpGX45ZSFLxGyC/Z77fUQR9Xc6jQAbT6CeJT6tjGwIoY10brLoEglOtTbEXRQmwalNTve+MgLYdLH8DGEb3LOF3P9lI8fxlSXjmaJx7wQEgBRhTVFQ5GgxFuE3mqL9/4GyYoOSTwse98JNnCAA1dUK6OliILdriU4795lW2JGJa3O3N2Pk4imw==
+    client_secret: AgBNmXzJRxbTw9R1t6R6bMxgLm7Cj3PiElVPwAyMAE0SLpH2oPv0fKHyP2NT4kLtqzXmI/GPx2l2WcMOSnbha6q1U68pYRBp25bmUJ5jhyHevyVHSob+I9TQC0ZbeYtnmwmlcVavFZJmdfO0cP9jVlR4HCB4nUboebvcth+LRhT40RCuHdwmvy2RePG5DNjSduPxdyfx/M2Z4gea1+6+E+8HZCuhWwQwiUO2wLxcGW2Ok1/b1/ZrOlwrZbe/1rc50uIEs7bsanWdjgIuMBXImr497NyKOoSHDiHz4XSrxztom3pE1h8Vl4Z+xbVih+5D8PvlsyX32Mjopp7sGyjZLs33q0grrTsYmTnONPk+ZiagoapA0h/7zNm6KieCCuKqgwxs2lRoso8M8TiB/wqaHOJ/D9wTcQZ9wzTW66JnxGf6fMqR45wzF1smTIvhsP4ZW7Wzb794a4P36lOEuvwpQ3MUZz8S70Ijbgza1Zy6TI2t5oWI0m/edKkS/1PbR77P1Z8VNyztyfzAB+P4GRhf/5HVBi1dnHBZN7GV5Nyo2stVtIR6z9Ez+B2ByTLhZ+bzwx+XuWiWJ0gWJD9HZzGF5U8IT9zo6tsgoVY0ZUfgXpOny6wDjgJ7XL9dq5VPVJflaWB8DmABoiWVPDX2gUwh6tScb3Rd62Tzj11DQUziz9ICKs4LpKnw5r09qKMwCq4MjuDFruFMXBuJrhyiY+2zUxUSnyr/t6NR30XCHvF969TY1MIsQFiTAt45ZlOt7nq+RdG0VZCrCLqVHNzXHMbRyAu8
+  template:
+    metadata:
+      annotations:
+        meta.helm.sh/release-name: tailscale-operator
+        meta.helm.sh/release-namespace: tailscale
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/managed-by: Helm
+      name: operator-oauth
+      namespace: tailscale
+    type: Opaque
