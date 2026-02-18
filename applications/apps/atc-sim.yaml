@@ -1,0 +1,36 @@
+# ATC Simulator Application
+# Browser-based TRACON ATC simulator (KRIC) with STARS radar display
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: atc-sim
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/desponda/atc-sim.git
+    targetRevision: main
+    path: k8s/helm/atc-sim
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: atc-sim
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
